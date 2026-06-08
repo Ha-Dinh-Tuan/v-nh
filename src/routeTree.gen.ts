@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedViThangRouteImport } from './routes/_authenticated/vi-thang'
 import { Route as AuthenticatedGiaoDichRouteImport } from './routes/_authenticated/giao-dich'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -22,6 +23,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedViThangRoute = AuthenticatedViThangRouteImport.update({
+  id: '/vi-thang',
+  path: '/vi-thang',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGiaoDichRoute = AuthenticatedGiaoDichRouteImport.update({
   id: '/giao-dich',
   path: '/giao-dich',
@@ -31,26 +37,30 @@ const AuthenticatedGiaoDichRoute = AuthenticatedGiaoDichRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
+  '/vi-thang': typeof AuthenticatedViThangRoute
 }
 export interface FileRoutesByTo {
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
+  '/vi-thang': typeof AuthenticatedViThangRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/giao-dich': typeof AuthenticatedGiaoDichRoute
+  '/_authenticated/vi-thang': typeof AuthenticatedViThangRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/giao-dich'
+  fullPaths: '/' | '/giao-dich' | '/vi-thang'
   fileRoutesByTo: FileRoutesByTo
-  to: '/giao-dich' | '/'
+  to: '/giao-dich' | '/vi-thang' | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/_authenticated/giao-dich'
+    | '/_authenticated/vi-thang'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -74,6 +84,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vi-thang': {
+      id: '/_authenticated/vi-thang'
+      path: '/vi-thang'
+      fullPath: '/vi-thang'
+      preLoaderRoute: typeof AuthenticatedViThangRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/giao-dich': {
       id: '/_authenticated/giao-dich'
       path: '/giao-dich'
@@ -86,11 +103,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedGiaoDichRoute: typeof AuthenticatedGiaoDichRoute
+  AuthenticatedViThangRoute: typeof AuthenticatedViThangRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGiaoDichRoute: AuthenticatedGiaoDichRoute,
+  AuthenticatedViThangRoute: AuthenticatedViThangRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
