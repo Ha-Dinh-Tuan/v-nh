@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedGiaoDichRouteImport } from './routes/_authenticated/giao-dich'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -21,24 +22,36 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGiaoDichRoute = AuthenticatedGiaoDichRouteImport.update({
+  id: '/giao-dich',
+  path: '/giao-dich',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/giao-dich': typeof AuthenticatedGiaoDichRoute
 }
 export interface FileRoutesByTo {
+  '/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/giao-dich'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/_authenticated' | '/_authenticated/'
+  to: '/giao-dich' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/_authenticated/giao-dich'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -61,14 +74,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/giao-dich': {
+      id: '/_authenticated/giao-dich'
+      path: '/giao-dich'
+      fullPath: '/giao-dich'
+      preLoaderRoute: typeof AuthenticatedGiaoDichRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedGiaoDichRoute: typeof AuthenticatedGiaoDichRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedGiaoDichRoute: AuthenticatedGiaoDichRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
