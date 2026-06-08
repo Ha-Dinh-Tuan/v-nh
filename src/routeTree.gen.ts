@@ -14,6 +14,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedViThangRouteImport } from './routes/_authenticated/vi-thang'
 import { Route as AuthenticatedMucTieuRouteImport } from './routes/_authenticated/muc-tieu'
 import { Route as AuthenticatedGiaoDichRouteImport } from './routes/_authenticated/giao-dich'
+import { Route as AuthenticatedBaoCaoRouteImport } from './routes/_authenticated/bao-cao'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -39,14 +40,21 @@ const AuthenticatedGiaoDichRoute = AuthenticatedGiaoDichRouteImport.update({
   path: '/giao-dich',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBaoCaoRoute = AuthenticatedBaoCaoRouteImport.update({
+  id: '/bao-cao',
+  path: '/bao-cao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/bao-cao': typeof AuthenticatedBaoCaoRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/muc-tieu': typeof AuthenticatedMucTieuRoute
   '/vi-thang': typeof AuthenticatedViThangRoute
 }
 export interface FileRoutesByTo {
+  '/bao-cao': typeof AuthenticatedBaoCaoRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/muc-tieu': typeof AuthenticatedMucTieuRoute
   '/vi-thang': typeof AuthenticatedViThangRoute
@@ -55,6 +63,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/bao-cao': typeof AuthenticatedBaoCaoRoute
   '/_authenticated/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/_authenticated/muc-tieu': typeof AuthenticatedMucTieuRoute
   '/_authenticated/vi-thang': typeof AuthenticatedViThangRoute
@@ -62,12 +71,13 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/giao-dich' | '/muc-tieu' | '/vi-thang'
+  fullPaths: '/' | '/bao-cao' | '/giao-dich' | '/muc-tieu' | '/vi-thang'
   fileRoutesByTo: FileRoutesByTo
-  to: '/giao-dich' | '/muc-tieu' | '/vi-thang' | '/'
+  to: '/bao-cao' | '/giao-dich' | '/muc-tieu' | '/vi-thang' | '/'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/_authenticated/bao-cao'
     | '/_authenticated/giao-dich'
     | '/_authenticated/muc-tieu'
     | '/_authenticated/vi-thang'
@@ -115,10 +125,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGiaoDichRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/bao-cao': {
+      id: '/_authenticated/bao-cao'
+      path: '/bao-cao'
+      fullPath: '/bao-cao'
+      preLoaderRoute: typeof AuthenticatedBaoCaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBaoCaoRoute: typeof AuthenticatedBaoCaoRoute
   AuthenticatedGiaoDichRoute: typeof AuthenticatedGiaoDichRoute
   AuthenticatedMucTieuRoute: typeof AuthenticatedMucTieuRoute
   AuthenticatedViThangRoute: typeof AuthenticatedViThangRoute
@@ -126,6 +144,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBaoCaoRoute: AuthenticatedBaoCaoRoute,
   AuthenticatedGiaoDichRoute: AuthenticatedGiaoDichRoute,
   AuthenticatedMucTieuRoute: AuthenticatedMucTieuRoute,
   AuthenticatedViThangRoute: AuthenticatedViThangRoute,
