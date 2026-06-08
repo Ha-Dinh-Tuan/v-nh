@@ -9,61 +9,179 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedViThangRouteImport } from './routes/_authenticated/vi-thang'
+import { Route as AuthenticatedMucTieuRouteImport } from './routes/_authenticated/muc-tieu'
+import { Route as AuthenticatedGiaoDichRouteImport } from './routes/_authenticated/giao-dich'
+import { Route as AuthenticatedBaoCaoRouteImport } from './routes/_authenticated/bao-cao'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedViThangRoute = AuthenticatedViThangRouteImport.update({
+  id: '/vi-thang',
+  path: '/vi-thang',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMucTieuRoute = AuthenticatedMucTieuRouteImport.update({
+  id: '/muc-tieu',
+  path: '/muc-tieu',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGiaoDichRoute = AuthenticatedGiaoDichRouteImport.update({
+  id: '/giao-dich',
+  path: '/giao-dich',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBaoCaoRoute = AuthenticatedBaoCaoRouteImport.update({
+  id: '/bao-cao',
+  path: '/bao-cao',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/bao-cao': typeof AuthenticatedBaoCaoRoute
+  '/giao-dich': typeof AuthenticatedGiaoDichRoute
+  '/muc-tieu': typeof AuthenticatedMucTieuRoute
+  '/vi-thang': typeof AuthenticatedViThangRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/bao-cao': typeof AuthenticatedBaoCaoRoute
+  '/giao-dich': typeof AuthenticatedGiaoDichRoute
+  '/muc-tieu': typeof AuthenticatedMucTieuRoute
+  '/vi-thang': typeof AuthenticatedViThangRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/bao-cao': typeof AuthenticatedBaoCaoRoute
+  '/_authenticated/giao-dich': typeof AuthenticatedGiaoDichRoute
+  '/_authenticated/muc-tieu': typeof AuthenticatedMucTieuRoute
+  '/_authenticated/vi-thang': typeof AuthenticatedViThangRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/bao-cao'
+    | '/giao-dich'
+    | '/muc-tieu'
+    | '/vi-thang'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/auth' | '/bao-cao' | '/giao-dich' | '/muc-tieu' | '/vi-thang' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/bao-cao'
+    | '/_authenticated/giao-dich'
+    | '/_authenticated/muc-tieu'
+    | '/_authenticated/vi-thang'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vi-thang': {
+      id: '/_authenticated/vi-thang'
+      path: '/vi-thang'
+      fullPath: '/vi-thang'
+      preLoaderRoute: typeof AuthenticatedViThangRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/muc-tieu': {
+      id: '/_authenticated/muc-tieu'
+      path: '/muc-tieu'
+      fullPath: '/muc-tieu'
+      preLoaderRoute: typeof AuthenticatedMucTieuRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/giao-dich': {
+      id: '/_authenticated/giao-dich'
+      path: '/giao-dich'
+      fullPath: '/giao-dich'
+      preLoaderRoute: typeof AuthenticatedGiaoDichRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bao-cao': {
+      id: '/_authenticated/bao-cao'
+      path: '/bao-cao'
+      fullPath: '/bao-cao'
+      preLoaderRoute: typeof AuthenticatedBaoCaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBaoCaoRoute: typeof AuthenticatedBaoCaoRoute
+  AuthenticatedGiaoDichRoute: typeof AuthenticatedGiaoDichRoute
+  AuthenticatedMucTieuRoute: typeof AuthenticatedMucTieuRoute
+  AuthenticatedViThangRoute: typeof AuthenticatedViThangRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBaoCaoRoute: AuthenticatedBaoCaoRoute,
+  AuthenticatedGiaoDichRoute: AuthenticatedGiaoDichRoute,
+  AuthenticatedMucTieuRoute: AuthenticatedMucTieuRoute,
+  AuthenticatedViThangRoute: AuthenticatedViThangRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
