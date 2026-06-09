@@ -1,7 +1,6 @@
-import { createFileRoute, Outlet, redirect, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Home, ListChecks, Target, PieChart, Wallet, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Home, ListChecks, Target, PieChart, Settings as SettingsIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -14,11 +13,6 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthedLayout() {
-  const router = useRouter();
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    router.navigate({ to: "/auth" });
-  };
   return (
     <div className="min-h-screen flex flex-col mx-auto max-w-md w-full pb-24 relative">
       <header className="flex items-center justify-between px-5 pt-6 pb-3">
@@ -26,9 +20,6 @@ function AuthedLayout() {
           <span className="text-2xl">🌸</span>
           <span className="font-display font-bold text-lg tracking-tight">Ví Hồng</span>
         </Link>
-        <Button variant="ghost" size="icon" onClick={signOut} aria-label="Đăng xuất">
-          <LogOut className="size-4" />
-        </Button>
       </header>
       <main className="flex-1 px-4">
         <Outlet />
@@ -42,9 +33,9 @@ function BottomNav() {
   const items = [
     { to: "/", icon: Home, label: "Trang chủ" },
     { to: "/giao-dich", icon: ListChecks, label: "Nhật ký" },
-    { to: "/vi-thang", icon: Wallet, label: "Ví tháng" },
     { to: "/muc-tieu", icon: Target, label: "Mục tiêu" },
     { to: "/bao-cao", icon: PieChart, label: "Báo cáo" },
+    { to: "/cai-dat", icon: SettingsIcon, label: "Cài đặt" },
   ] as const;
   return (
     <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-[min(28rem,calc(100%-1rem))]">
