@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedViThangRouteImport } from './routes/_authenticated/vi-thang'
 import { Route as AuthenticatedMucTieuRouteImport } from './routes/_authenticated/muc-tieu'
 import { Route as AuthenticatedGiaoDichRouteImport } from './routes/_authenticated/giao-dich'
+import { Route as AuthenticatedCaiDatRouteImport } from './routes/_authenticated/cai-dat'
 import { Route as AuthenticatedBaoCaoRouteImport } from './routes/_authenticated/bao-cao'
 
 const AuthRoute = AuthRouteImport.update({
@@ -46,6 +47,11 @@ const AuthenticatedGiaoDichRoute = AuthenticatedGiaoDichRouteImport.update({
   path: '/giao-dich',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCaiDatRoute = AuthenticatedCaiDatRouteImport.update({
+  id: '/cai-dat',
+  path: '/cai-dat',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBaoCaoRoute = AuthenticatedBaoCaoRouteImport.update({
   id: '/bao-cao',
   path: '/bao-cao',
@@ -56,6 +62,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/bao-cao': typeof AuthenticatedBaoCaoRoute
+  '/cai-dat': typeof AuthenticatedCaiDatRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/muc-tieu': typeof AuthenticatedMucTieuRoute
   '/vi-thang': typeof AuthenticatedViThangRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/bao-cao': typeof AuthenticatedBaoCaoRoute
+  '/cai-dat': typeof AuthenticatedCaiDatRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/muc-tieu': typeof AuthenticatedMucTieuRoute
   '/vi-thang': typeof AuthenticatedViThangRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/bao-cao': typeof AuthenticatedBaoCaoRoute
+  '/_authenticated/cai-dat': typeof AuthenticatedCaiDatRoute
   '/_authenticated/giao-dich': typeof AuthenticatedGiaoDichRoute
   '/_authenticated/muc-tieu': typeof AuthenticatedMucTieuRoute
   '/_authenticated/vi-thang': typeof AuthenticatedViThangRoute
@@ -84,16 +93,25 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bao-cao'
+    | '/cai-dat'
     | '/giao-dich'
     | '/muc-tieu'
     | '/vi-thang'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/bao-cao' | '/giao-dich' | '/muc-tieu' | '/vi-thang' | '/'
+  to:
+    | '/auth'
+    | '/bao-cao'
+    | '/cai-dat'
+    | '/giao-dich'
+    | '/muc-tieu'
+    | '/vi-thang'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/bao-cao'
+    | '/_authenticated/cai-dat'
     | '/_authenticated/giao-dich'
     | '/_authenticated/muc-tieu'
     | '/_authenticated/vi-thang'
@@ -149,6 +167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGiaoDichRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cai-dat': {
+      id: '/_authenticated/cai-dat'
+      path: '/cai-dat'
+      fullPath: '/cai-dat'
+      preLoaderRoute: typeof AuthenticatedCaiDatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bao-cao': {
       id: '/_authenticated/bao-cao'
       path: '/bao-cao'
@@ -161,6 +186,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBaoCaoRoute: typeof AuthenticatedBaoCaoRoute
+  AuthenticatedCaiDatRoute: typeof AuthenticatedCaiDatRoute
   AuthenticatedGiaoDichRoute: typeof AuthenticatedGiaoDichRoute
   AuthenticatedMucTieuRoute: typeof AuthenticatedMucTieuRoute
   AuthenticatedViThangRoute: typeof AuthenticatedViThangRoute
@@ -169,6 +195,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBaoCaoRoute: AuthenticatedBaoCaoRoute,
+  AuthenticatedCaiDatRoute: AuthenticatedCaiDatRoute,
   AuthenticatedGiaoDichRoute: AuthenticatedGiaoDichRoute,
   AuthenticatedMucTieuRoute: AuthenticatedMucTieuRoute,
   AuthenticatedViThangRoute: AuthenticatedViThangRoute,
@@ -185,3 +212,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, TrendingUp, Flame, Sparkles } from "lucide-react";
+import { Plus, TrendingUp, Sparkles, Settings as SettingsIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VND, currentMonthKey, daysLeftInMonth, daysInMonth, dayOfMonth } from "@/lib/format";
 import { findCategory } from "@/lib/categories";
@@ -19,13 +19,24 @@ function HomePage() {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const accountsQ = useQuery({
-    queryKey: ["accounts"],
+  const profileQ = useQuery({
+    queryKey: ["profile"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("accounts")
-        .select("*")
-        .order("created_at");
+        .from("profiles")
+        .select("initial_balance")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const allTxQ = useQuery({
+    queryKey: ["tx-all-sum"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("amount, kind");
       if (error) throw error;
       return data;
     },
@@ -44,18 +55,21 @@ function HomePage() {
     },
   });
 
-  const accounts = accountsQ.data ?? [];
+  const initial = Number(profileQ.data?.initial_balance ?? 0);
+  const allTx = allTxQ.data ?? [];
+  const totalIncomeAll = allTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const totalExpenseAll = allTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  const currentBalance = initial + totalIncomeAll - totalExpenseAll;
+
   const tx = txQ.data ?? [];
-  const totalBalance = accounts.reduce((s, a) => s + Number(a.balance), 0);
   const spent = tx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
   const income = tx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
   const dayN = dayOfMonth();
   const left = daysLeftInMonth();
   const totalDays = daysInMonth();
   const avgPerDay = dayN > 0 ? spent / dayN : 0;
-  const predicted = totalBalance - avgPerDay * left;
+  const predicted = currentBalance - avgPerDay * left;
 
-  // streak detect: days no "Trà sữa" or no "Ăn uống"
   const byCat = new Map<string, number>();
   tx.forEach((t) => {
     const k = (t.subcategory ?? t.category) as string;
@@ -64,9 +78,7 @@ function HomePage() {
   const drinkSpent = (byCat.get("Trà sữa") ?? 0) + (byCat.get("Cafe") ?? 0);
   const lastDrink = tx.find((t) => t.subcategory === "Trà sữa");
   const daysSinceDrink = lastDrink
-    ? Math.floor(
-        (Date.now() - new Date(lastDrink.occurred_at).getTime()) / 86400000
-      )
+    ? Math.floor((Date.now() - new Date(lastDrink.occurred_at).getTime()) / 86400000)
     : 7;
 
   const recent = tx.slice(0, 5);
@@ -78,31 +90,38 @@ function HomePage() {
         <div className="absolute -top-8 -right-8 size-32 rounded-full bg-white/15 blur-xl" />
         <div className="absolute -bottom-10 -left-4 size-24 rounded-full bg-white/10 blur-xl" />
         <div className="relative">
-          <div className="text-xs uppercase tracking-wider opacity-80">Tổng số dư</div>
-          <div className="text-4xl font-bold font-display mt-1">{VND(totalBalance)}</div>
-          <div className="flex gap-2 mt-4">
-            {accounts.map((a) => (
-              <div
-                key={a.id}
-                className="flex-1 rounded-2xl bg-white/20 backdrop-blur px-3 py-2 text-xs"
-              >
-                <div className="flex items-center gap-1 opacity-90">
-                  <span>{a.icon}</span>
-                  <span>{a.name}</span>
-                </div>
-                <div className="font-semibold text-sm mt-0.5">{VND(Number(a.balance))}</div>
-              </div>
-            ))}
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wider opacity-80">Số dư hiện tại</div>
+              <div className="text-4xl font-bold font-display mt-1">{VND(currentBalance)}</div>
+            </div>
+            <Link
+              to="/cai-dat"
+              className="size-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center hover:bg-white/30 transition-colors"
+              aria-label="Cài đặt"
+            >
+              <SettingsIcon className="size-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="rounded-2xl bg-white/20 backdrop-blur px-3 py-2 text-xs">
+              <div className="opacity-90">Số dư ban đầu</div>
+              <div className="font-semibold text-sm mt-0.5">{VND(initial)}</div>
+            </div>
+            <div className="rounded-2xl bg-white/20 backdrop-blur px-3 py-2 text-xs">
+              <div className="opacity-90">Còn lại tháng này</div>
+              <div className="font-semibold text-sm mt-0.5">{left} ngày</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Month stats */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Đã tiêu tháng này" value={VND(spent)} tone="warn" />
-        <StatCard label="Đã nạp vào ví" value={VND(income)} tone="ok" />
-        <StatCard label="Còn lại trong tháng" value={`${left} ngày`} />
-        <StatCard label="TB / ngày" value={VND(avgPerDay)} />
+        <StatCard label="Tổng thu" value={VND(totalIncomeAll)} tone="ok" />
+        <StatCard label="Tổng chi" value={VND(totalExpenseAll)} tone="warn" />
+        <StatCard label="Đã tiêu tháng này" value={VND(spent)} />
+        <StatCard label="Đã thu tháng này" value={VND(income)} />
       </div>
 
       {/* Prediction */}
@@ -112,14 +131,13 @@ function HomePage() {
         </div>
         <div className="text-sm text-muted-foreground leading-relaxed">
           Nếu tiếp tục như hiện tại, cuối tháng bạn sẽ còn khoảng{" "}
-          <span className="font-bold text-foreground text-base">{VND(Math.max(0, predicted))}</span>
-          .
+          <span className="font-bold text-foreground text-base">{VND(Math.max(0, predicted))}</span>.
         </div>
       </div>
 
       {/* Streaks */}
       <div className="space-y-2">
-        {daysSinceDrink >= 1 && (
+        {daysSinceDrink >= 1 && spent > 0 && (
           <InsightChip
             icon="🔥"
             text={`Bạn đã ${daysSinceDrink} ngày không uống trà sữa — giỏi quá!`}
@@ -132,7 +150,7 @@ function HomePage() {
             tone="warn"
           />
         )}
-        {spent === 0 && (
+        {spent === 0 && income === 0 && (
           <InsightChip icon="✨" text="Chưa ghi khoản nào tháng này. Bấm + để bắt đầu nhé!" />
         )}
       </div>
@@ -141,7 +159,7 @@ function HomePage() {
       <div>
         <div className="flex items-center justify-between mb-2 px-1">
           <h2 className="font-display font-semibold">Gần đây</h2>
-          <span className="text-xs text-muted-foreground">{tx.length} giao dịch</span>
+          <span className="text-xs text-muted-foreground">{tx.length} giao dịch tháng này</span>
         </div>
         <div className="rounded-3xl bg-card border border-border shadow-soft divide-y divide-border overflow-hidden">
           {recent.length === 0 && (
@@ -150,18 +168,19 @@ function HomePage() {
             </div>
           )}
           {recent.map((t) => {
+            const isIncome = t.kind === "income";
             const c = findCategory(t.category);
             return (
               <div key={t.id} className="flex items-center gap-3 p-3">
                 <div
                   className="size-10 rounded-2xl flex items-center justify-center text-lg shrink-0"
-                  style={{ backgroundColor: c.color + "22" }}
+                  style={{ backgroundColor: isIncome ? "var(--success)" + "22" : c.color + "22" }}
                 >
-                  {c.emoji}
+                  {isIncome ? "💖" : c.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
-                    {t.subcategory ?? t.category}
+                    {isIncome ? "Thu nhập" : (t.subcategory ?? t.category)}
                     {t.note ? <span className="text-muted-foreground"> · {t.note}</span> : null}
                   </div>
                   <div className="text-[11px] text-muted-foreground">
@@ -173,7 +192,12 @@ function HomePage() {
                     })}
                   </div>
                 </div>
-                <div className="text-sm font-semibold text-foreground">-{VND(Number(t.amount))}</div>
+                <div
+                  className={`text-sm font-semibold ${isIncome ? "text-success" : "text-foreground"}`}
+                >
+                  {isIncome ? "+" : "-"}
+                  {VND(Number(t.amount))}
+                </div>
               </div>
             );
           })}
@@ -184,12 +208,12 @@ function HomePage() {
       <Button
         onClick={() => setOpenAdd(true)}
         className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 size-16 rounded-full gradient-primary shadow-pink hover:opacity-95 p-0"
-        aria-label="Thêm chi tiêu"
+        aria-label="Thêm giao dịch"
       >
         <Plus className="size-7 text-white" />
       </Button>
 
-      <QuickAddDialog open={openAdd} onOpenChange={setOpenAdd} accounts={accounts} />
+      <QuickAddDialog open={openAdd} onOpenChange={setOpenAdd} />
     </div>
   );
 }
@@ -229,9 +253,7 @@ function InsightChip({
   return (
     <div
       className={`rounded-2xl p-3 flex items-start gap-2 text-sm border ${
-        tone === "warn"
-          ? "bg-secondary/60 border-secondary"
-          : "bg-accent/40 border-accent"
+        tone === "warn" ? "bg-secondary/60 border-secondary" : "bg-accent/40 border-accent"
       }`}
     >
       <div className="shrink-0 size-7 rounded-xl bg-card flex items-center justify-center">
