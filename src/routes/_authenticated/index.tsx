@@ -1,87 +1,65 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, TrendingUp, Sparkles, Settings as SettingsIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { VND, currentMonthKey, daysLeftInMonth, daysInMonth, dayOfMonth } from "@/lib/format";
+import { Plus, TrendingUp, Settings as SettingsIcon } from "lucide-react";
+import {
+  VND,
+  currentMonthKey,
+  daysLeftInMonth,
+  dayOfMonth,
+} from "@/lib/format";
 import { findCategory } from "@/lib/categories";
 import { QuickAddDialog } from "@/components/QuickAddDialog";
+import { OnboardingScreen } from "@/components/OnboardingScreen";
 import { Button } from "@/components/ui/button";
+import { useStore, computeBalance } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: HomePage,
 });
 
 function HomePage() {
+  const initialized = useStore((s) => s.initialized);
+  if (!initialized) return <OnboardingScreen />;
+
+  return <Dashboard />;
+}
+
+function Dashboard() {
   const [openAdd, setOpenAdd] = useState(false);
   const monthKey = currentMonthKey();
+
+  const state = useStore((s) => s);
+  const { balance, income: totalIncome, expense: totalExpense } = computeBalance(state);
+
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const profileQ = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("initial_balance")
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
+  const monthTx = state.transactions.filter(
+    (t) => new Date(t.occurred_at) >= monthStart,
+  );
+  const monthSpent = monthTx
+    .filter((t) => t.kind === "expense")
+    .reduce((s, t) => s + t.amount, 0);
+  const monthIncome = monthTx
+    .filter((t) => t.kind === "income")
+    .reduce((s, t) => s + t.amount, 0);
 
-  const allTxQ = useQuery({
-    queryKey: ["tx-all-sum"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("amount, kind");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const totalBudget =
+    state.budgets.find((b) => b.category === "__total__" && b.month === monthKey)
+      ?.amount ?? 0;
 
-  const txQ = useQuery({
-    queryKey: ["tx-month", monthKey],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .gte("occurred_at", monthStart.toISOString())
-        .order("occurred_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const initial = Number(profileQ.data?.initial_balance ?? 0);
-  const allTx = allTxQ.data ?? [];
-  const totalIncomeAll = allTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const totalExpenseAll = allTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
-  const currentBalance = initial + totalIncomeAll - totalExpenseAll;
-
-  const tx = txQ.data ?? [];
-  const spent = tx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
-  const income = tx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const dayN = dayOfMonth();
+  const remainingMonth = totalBudget > 0 ? totalBudget - monthSpent : balance;
   const left = daysLeftInMonth();
-  const totalDays = daysInMonth();
-  const avgPerDay = dayN > 0 ? spent / dayN : 0;
-  const predicted = currentBalance - avgPerDay * left;
+  const dayN = dayOfMonth();
+  const dailyAllowance =
+    totalBudget > 0
+      ? Math.max(0, (totalBudget - monthSpent) / Math.max(1, left + 1))
+      : 0;
+  const avgPerDay = dayN > 0 ? monthSpent / dayN : 0;
+  const predicted = balance - avgPerDay * left;
 
-  const byCat = new Map<string, number>();
-  tx.forEach((t) => {
-    const k = (t.subcategory ?? t.category) as string;
-    byCat.set(k, (byCat.get(k) ?? 0) + Number(t.amount));
-  });
-  const drinkSpent = (byCat.get("Trà sữa") ?? 0) + (byCat.get("Cafe") ?? 0);
-  const lastDrink = tx.find((t) => t.subcategory === "Trà sữa");
-  const daysSinceDrink = lastDrink
-    ? Math.floor((Date.now() - new Date(lastDrink.occurred_at).getTime()) / 86400000)
-    : 7;
-
-  const recent = tx.slice(0, 5);
+  const recent = state.transactions.slice(0, 5);
 
   return (
     <div className="space-y-5 pb-8">
@@ -93,7 +71,7 @@ function HomePage() {
           <div className="flex items-start justify-between">
             <div>
               <div className="text-xs uppercase tracking-wider opacity-80">Số dư hiện tại</div>
-              <div className="text-4xl font-bold font-display mt-1">{VND(currentBalance)}</div>
+              <div className="text-4xl font-bold font-display mt-1">{VND(balance)}</div>
             </div>
             <Link
               to="/cai-dat"
@@ -106,10 +84,10 @@ function HomePage() {
           <div className="grid grid-cols-2 gap-2 mt-4">
             <div className="rounded-2xl bg-white/20 backdrop-blur px-3 py-2 text-xs">
               <div className="opacity-90">Số dư ban đầu</div>
-              <div className="font-semibold text-sm mt-0.5">{VND(initial)}</div>
+              <div className="font-semibold text-sm mt-0.5">{VND(state.initial_balance)}</div>
             </div>
             <div className="rounded-2xl bg-white/20 backdrop-blur px-3 py-2 text-xs">
-              <div className="opacity-90">Còn lại tháng này</div>
+              <div className="opacity-90">Còn lại tháng</div>
               <div className="font-semibold text-sm mt-0.5">{left} ngày</div>
             </div>
           </div>
@@ -118,11 +96,65 @@ function HomePage() {
 
       {/* Month stats */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Tổng thu" value={VND(totalIncomeAll)} tone="ok" />
-        <StatCard label="Tổng chi" value={VND(totalExpenseAll)} tone="warn" />
-        <StatCard label="Đã tiêu tháng này" value={VND(spent)} />
-        <StatCard label="Đã thu tháng này" value={VND(income)} />
+        <StatCard label="Tổng thu" value={VND(totalIncome)} tone="ok" />
+        <StatCard label="Tổng chi" value={VND(totalExpense)} tone="warn" />
+        <StatCard label="Đã chi tháng này" value={VND(monthSpent)} />
+        <StatCard label="Đã thu tháng này" value={VND(monthIncome)} tone="ok" />
       </div>
+
+      {/* Budget summary */}
+      {totalBudget > 0 ? (
+        <div className="rounded-3xl bg-card p-5 shadow-soft border border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-semibold">Ngân sách tháng này</div>
+            <div className="text-xs text-muted-foreground">
+              {VND(monthSpent)} / {VND(totalBudget)}
+            </div>
+          </div>
+          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width:
+                  Math.min(100, (monthSpent / totalBudget) * 100).toFixed(1) + "%",
+                background:
+                  monthSpent > totalBudget
+                    ? "var(--destructive)"
+                    : "var(--primary)",
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <div className="text-[11px] text-muted-foreground">Còn lại tháng</div>
+              <div
+                className={`font-bold ${
+                  remainingMonth < 0 ? "text-destructive" : "text-foreground"
+                }`}
+              >
+                {VND(remainingMonth)}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] text-muted-foreground">Mỗi ngày được tiêu</div>
+              <div className="font-bold text-primary">{VND(dailyAllowance)}</div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Để không vượt ngân sách, cố giữ chi tiêu dưới{" "}
+            <span className="font-semibold text-foreground">{VND(dailyAllowance)}</span>{" "}
+            mỗi ngày trong {left + 1} ngày tới 🌷
+          </p>
+        </div>
+      ) : (
+        <Link
+          to="/vi-thang"
+          className="block rounded-3xl bg-accent/40 border border-accent p-4 text-sm"
+        >
+          <span className="font-semibold">🌷 Đặt ngân sách tháng</span> — biết mỗi ngày
+          được tiêu bao nhiêu để không vượt.
+        </Link>
+      )}
 
       {/* Prediction */}
       <div className="rounded-3xl bg-card p-5 shadow-soft border border-border">
@@ -131,35 +163,20 @@ function HomePage() {
         </div>
         <div className="text-sm text-muted-foreground leading-relaxed">
           Nếu tiếp tục như hiện tại, cuối tháng bạn sẽ còn khoảng{" "}
-          <span className="font-bold text-foreground text-base">{VND(Math.max(0, predicted))}</span>.
+          <span className="font-bold text-foreground text-base">
+            {VND(Math.max(0, predicted))}
+          </span>
+          .
         </div>
-      </div>
-
-      {/* Streaks */}
-      <div className="space-y-2">
-        {daysSinceDrink >= 1 && spent > 0 && (
-          <InsightChip
-            icon="🔥"
-            text={`Bạn đã ${daysSinceDrink} ngày không uống trà sữa — giỏi quá!`}
-          />
-        )}
-        {drinkSpent > 200_000 && (
-          <InsightChip
-            icon={<Sparkles className="size-4" />}
-            text={`Tháng này bạn chi ${VND(drinkSpent)} cho đồ uống. Giảm 30% là tiết kiệm thêm ${VND(drinkSpent * 0.3)}.`}
-            tone="warn"
-          />
-        )}
-        {spent === 0 && income === 0 && (
-          <InsightChip icon="✨" text="Chưa ghi khoản nào tháng này. Bấm + để bắt đầu nhé!" />
-        )}
       </div>
 
       {/* Recent */}
       <div>
         <div className="flex items-center justify-between mb-2 px-1">
           <h2 className="font-display font-semibold">Gần đây</h2>
-          <span className="text-xs text-muted-foreground">{tx.length} giao dịch tháng này</span>
+          <span className="text-xs text-muted-foreground">
+            {state.transactions.length} giao dịch
+          </span>
         </div>
         <div className="rounded-3xl bg-card border border-border shadow-soft divide-y divide-border overflow-hidden">
           {recent.length === 0 && (
@@ -196,7 +213,7 @@ function HomePage() {
                   className={`text-sm font-semibold ${isIncome ? "text-success" : "text-foreground"}`}
                 >
                   {isIncome ? "+" : "-"}
-                  {VND(Number(t.amount))}
+                  {VND(t.amount)}
                 </div>
               </div>
             );
@@ -232,34 +249,11 @@ function StatCard({
       <div className="text-[11px] text-muted-foreground font-medium">{label}</div>
       <div
         className={`text-base font-bold font-display mt-0.5 ${
-          tone === "ok" ? "text-success" : tone === "warn" ? "text-foreground" : "text-foreground"
+          tone === "ok" ? "text-success" : "text-foreground"
         }`}
       >
         {value}
       </div>
-    </div>
-  );
-}
-
-function InsightChip({
-  icon,
-  text,
-  tone,
-}: {
-  icon: React.ReactNode;
-  text: string;
-  tone?: "warn";
-}) {
-  return (
-    <div
-      className={`rounded-2xl p-3 flex items-start gap-2 text-sm border ${
-        tone === "warn" ? "bg-secondary/60 border-secondary" : "bg-accent/40 border-accent"
-      }`}
-    >
-      <div className="shrink-0 size-7 rounded-xl bg-card flex items-center justify-center">
-        {typeof icon === "string" ? <span>{icon}</span> : icon}
-      </div>
-      <div className="flex-1 leading-snug">{text}</div>
     </div>
   );
 }
