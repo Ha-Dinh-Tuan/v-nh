@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { VND } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Trash2, PiggyBank } from "lucide-react";
 import { toast } from "sonner";
+import { actions, useStore } from "@/lib/store";
 
 const EMOJIS = ["💻", "🏖️", "📱", "🛟", "🎧", "🚲", "🎁", "🌸"];
 
@@ -16,59 +15,35 @@ export const Route = createFileRoute("/_authenticated/muc-tieu")({
 });
 
 function GoalsPage() {
-  const qc = useQueryClient();
+  const goals = useStore((s) => s.goals);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [emoji, setEmoji] = useState("💖");
-
   const [deposit, setDeposit] = useState<{ id: string; amount: string } | null>(null);
 
-  const q = useQuery({
-    queryKey: ["goals"],
-    queryFn: async () => {
-      const { data } = await supabase.from("goals").select("*").order("created_at");
-      return data ?? [];
-    },
-  });
-  const goals = q.data ?? [];
-
-  const create = async () => {
+  const create = () => {
     const t = Number(target.replace(/\D/g, ""));
     if (!name.trim() || !t) {
       toast.error("Nhập tên và số tiền cần đạt nhé");
       return;
     }
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    await supabase
-      .from("goals")
-      .insert({ user_id: u.user.id, name: name.trim(), target_amount: t, emoji });
+    actions.createGoal(name.trim(), t, emoji);
     toast.success("Đã tạo mục tiêu " + emoji);
     setOpen(false);
     setName("");
     setTarget("");
     setEmoji("💖");
-    qc.invalidateQueries({ queryKey: ["goals"] });
   };
 
-  const addSaving = async () => {
+  const addSaving = () => {
     if (!deposit) return;
     const v = Number(deposit.amount.replace(/\D/g, "")) || 0;
     const g = goals.find((x) => x.id === deposit.id);
-    if (!g) return;
-    await supabase
-      .from("goals")
-      .update({ saved_amount: Number(g.saved_amount) + v })
-      .eq("id", g.id);
+    if (!g || !v) return;
+    actions.depositGoal(g.id, v);
     toast.success(`+${VND(v)} cho "${g.name}"`);
     setDeposit(null);
-    qc.invalidateQueries({ queryKey: ["goals"] });
-  };
-
-  const remove = async (id: string) => {
-    await supabase.from("goals").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["goals"] });
   };
 
   return (
@@ -96,10 +71,7 @@ function GoalsPage() {
 
       <div className="space-y-3">
         {goals.map((g) => {
-          const pct = Math.min(
-            100,
-            (Number(g.saved_amount) / Number(g.target_amount)) * 100
-          );
+          const pct = Math.min(100, (g.saved_amount / g.target_amount) * 100);
           const done = pct >= 100;
           return (
             <div key={g.id} className="rounded-3xl bg-card border border-border p-4 shadow-soft">
@@ -110,14 +82,14 @@ function GoalsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{g.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {VND(Number(g.saved_amount))} / {VND(Number(g.target_amount))}
+                    {VND(g.saved_amount)} / {VND(g.target_amount)}
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="size-8 text-muted-foreground"
-                  onClick={() => remove(g.id)}
+                  onClick={() => actions.deleteGoal(g.id)}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -146,7 +118,6 @@ function GoalsPage() {
         })}
       </div>
 
-      {/* Create */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm">
           <DialogHeader>
@@ -195,7 +166,6 @@ function GoalsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Deposit */}
       <Dialog open={!!deposit} onOpenChange={(v) => !v && setDeposit(null)}>
         <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm">
           <DialogHeader>

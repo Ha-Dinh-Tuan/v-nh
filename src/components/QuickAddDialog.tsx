@@ -3,8 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES } from "@/lib/categories";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { actions } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -15,13 +14,11 @@ export function QuickAddDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const qc = useQueryClient();
   const [kind, setKind] = useState<"expense" | "income">("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0].name);
   const [sub, setSub] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -35,37 +32,24 @@ export function QuickAddDialog({
 
   const cat = CATEGORIES.find((c) => c.name === category)!;
 
-  const submit = async () => {
+  const submit = () => {
     const value = Number(amount.replace(/\D/g, ""));
     if (!value || value <= 0) {
       toast.error("Nhập số tiền nhé 💸");
       return;
     }
-    setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) {
-      setSaving(false);
-      return;
-    }
-    const { error } = await supabase.from("transactions").insert({
-      user_id: u.user.id,
+    actions.addTransaction({
       amount: value,
       kind,
       category: kind === "income" ? "Thu nhập" : category,
       subcategory: kind === "income" ? null : sub,
       note: note || null,
     });
-    setSaving(false);
-    if (error) {
-      toast.error("Có lỗi: " + error.message);
-      return;
-    }
     toast.success(
       kind === "income"
         ? `+${value.toLocaleString("vi-VN")}đ thu nhập 💖`
         : `Đã ghi ${value.toLocaleString("vi-VN")}đ ${cat.emoji}`,
     );
-    qc.invalidateQueries();
     onOpenChange(false);
   };
 
@@ -177,10 +161,9 @@ export function QuickAddDialog({
 
           <Button
             onClick={submit}
-            disabled={saving}
             className="w-full h-12 rounded-2xl gradient-primary text-white font-semibold shadow-pink hover:opacity-95"
           >
-            {saving ? "Đang lưu..." : "Lưu"}
+            Lưu
           </Button>
         </div>
       </DialogContent>

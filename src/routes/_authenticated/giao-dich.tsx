@@ -1,31 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { VND } from "@/lib/format";
 import { findCategory } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { actions, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/giao-dich")({
   component: TxPage,
 });
 
 function TxPage() {
-  const qc = useQueryClient();
-  const q = useQuery({
-    queryKey: ["tx-all"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .order("occurred_at", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return data;
-    },
-  });
-  const tx = q.data ?? [];
+  const tx = useStore((s) => s.transactions);
+
   const groups = new Map<string, typeof tx>();
   tx.forEach((t) => {
     const d = new Date(t.occurred_at).toLocaleDateString("vi-VN", {
@@ -37,14 +24,9 @@ function TxPage() {
     groups.get(d)!.push(t);
   });
 
-  const del = async (id: string) => {
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+  const del = (id: string) => {
+    actions.deleteTransaction(id);
     toast.success("Đã xoá");
-    qc.invalidateQueries();
   };
 
   return (
@@ -52,7 +34,7 @@ function TxPage() {
       <div>
         <h1 className="font-display text-2xl font-bold">Nhật ký giao dịch</h1>
         <p className="text-sm text-muted-foreground">
-          Tổng cộng {tx.length} giao dịch gần nhất
+          Tổng cộng {tx.length} giao dịch
         </p>
       </div>
 
@@ -65,7 +47,7 @@ function TxPage() {
 
       {[...groups.entries()].map(([day, items]) => {
         const sum = items.reduce(
-          (s, t) => s + (t.kind === "income" ? Number(t.amount) : -Number(t.amount)),
+          (s, t) => s + (t.kind === "income" ? t.amount : -t.amount),
           0,
         );
         return (
@@ -113,7 +95,7 @@ function TxPage() {
                       className={`text-sm font-semibold ${isIncome ? "text-success" : ""}`}
                     >
                       {isIncome ? "+" : "-"}
-                      {VND(Number(t.amount))}
+                      {VND(t.amount)}
                     </div>
                     <Button
                       variant="ghost"

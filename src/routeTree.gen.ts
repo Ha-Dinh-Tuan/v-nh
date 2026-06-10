@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedViThangRouteImport } from './routes/_authenticated/vi-thang'
@@ -18,11 +17,6 @@ import { Route as AuthenticatedGiaoDichRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCaiDatRouteImport } from './routes/_authenticated/cai-dat'
 import { Route as AuthenticatedBaoCaoRouteImport } from './routes/_authenticated/bao-cao'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -60,7 +54,6 @@ const AuthenticatedBaoCaoRoute = AuthenticatedBaoCaoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/auth': typeof AuthRoute
   '/bao-cao': typeof AuthenticatedBaoCaoRoute
   '/cai-dat': typeof AuthenticatedCaiDatRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
@@ -68,7 +61,6 @@ export interface FileRoutesByFullPath {
   '/vi-thang': typeof AuthenticatedViThangRoute
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRoute
   '/bao-cao': typeof AuthenticatedBaoCaoRoute
   '/cai-dat': typeof AuthenticatedCaiDatRoute
   '/giao-dich': typeof AuthenticatedGiaoDichRoute
@@ -79,7 +71,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
   '/_authenticated/bao-cao': typeof AuthenticatedBaoCaoRoute
   '/_authenticated/cai-dat': typeof AuthenticatedCaiDatRoute
   '/_authenticated/giao-dich': typeof AuthenticatedGiaoDichRoute
@@ -91,25 +82,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth'
     | '/bao-cao'
     | '/cai-dat'
     | '/giao-dich'
     | '/muc-tieu'
     | '/vi-thang'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/auth'
-    | '/bao-cao'
-    | '/cai-dat'
-    | '/giao-dich'
-    | '/muc-tieu'
-    | '/vi-thang'
-    | '/'
+  to: '/bao-cao' | '/cai-dat' | '/giao-dich' | '/muc-tieu' | '/vi-thang' | '/'
   id:
     | '__root__'
     | '/_authenticated'
-    | '/auth'
     | '/_authenticated/bao-cao'
     | '/_authenticated/cai-dat'
     | '/_authenticated/giao-dich'
@@ -120,18 +102,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -207,7 +181,6 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,18 +1,12 @@
-import { createFileRoute, Outlet, redirect, Link } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
-import { Home, ListChecks, Target, PieChart, Settings as SettingsIcon } from "lucide-react";
+import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
+import { Home, ListChecks, Target, PieChart, Settings as SettingsIcon, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
-  },
-  component: AuthedLayout,
+  component: AppLayout,
 });
 
-function AuthedLayout() {
+function AppLayout() {
   return (
     <div className="min-h-screen flex flex-col mx-auto max-w-md w-full pb-24 relative">
       <header className="flex items-center justify-between px-5 pt-6 pb-3">
@@ -33,6 +27,7 @@ function BottomNav() {
   const items = [
     { to: "/", icon: Home, label: "Trang chủ" },
     { to: "/giao-dich", icon: ListChecks, label: "Nhật ký" },
+    { to: "/vi-thang", icon: Wallet, label: "Ngân sách" },
     { to: "/muc-tieu", icon: Target, label: "Mục tiêu" },
     { to: "/bao-cao", icon: PieChart, label: "Báo cáo" },
     { to: "/cai-dat", icon: SettingsIcon, label: "Cài đặt" },

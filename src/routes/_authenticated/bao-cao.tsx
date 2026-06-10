@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { VND, currentMonthKey } from "@/lib/format";
-import { CATEGORIES, findCategory } from "@/lib/categories";
+import { VND } from "@/lib/format";
+import { findCategory } from "@/lib/categories";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from "recharts";
+import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/bao-cao")({
   component: ReportPage,
 });
 
 function ReportPage() {
-  const month = currentMonthKey();
   const start = new Date();
   start.setDate(1);
   start.setHours(0, 0, 0, 0);
@@ -19,24 +17,16 @@ function ReportPage() {
   sixMonthAgo.setDate(1);
   sixMonthAgo.setHours(0, 0, 0, 0);
 
-  const q = useQuery({
-    queryKey: ["report"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("transactions")
-        .select("amount, category, occurred_at, kind")
-        .gte("occurred_at", sixMonthAgo.toISOString());
-      return data ?? [];
-    },
-  });
+  const tx = useStore((s) =>
+    s.transactions.filter((t) => new Date(t.occurred_at) >= sixMonthAgo),
+  );
 
-  const tx = q.data ?? [];
   const monthTx = tx.filter(
-    (t) => new Date(t.occurred_at) >= start && t.kind === "expense"
+    (t) => new Date(t.occurred_at) >= start && t.kind === "expense",
   );
 
   const byCat = new Map<string, number>();
-  monthTx.forEach((t) => byCat.set(t.category, (byCat.get(t.category) ?? 0) + Number(t.amount)));
+  monthTx.forEach((t) => byCat.set(t.category, (byCat.get(t.category) ?? 0) + t.amount));
 
   const pieData = [...byCat.entries()].map(([name, value]) => ({
     name,
@@ -45,7 +35,6 @@ function ReportPage() {
   }));
   const total = pieData.reduce((s, p) => s + p.value, 0);
 
-  // 6-month bar
   const monthsMap = new Map<string, number>();
   for (let i = 5; i >= 0; i--) {
     const d = new Date();
@@ -57,8 +46,7 @@ function ReportPage() {
     if (t.kind !== "expense") return;
     const d = new Date(t.occurred_at);
     const key = `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`;
-    if (monthsMap.has(key))
-      monthsMap.set(key, (monthsMap.get(key) ?? 0) + Number(t.amount));
+    if (monthsMap.has(key)) monthsMap.set(key, (monthsMap.get(key) ?? 0) + t.amount);
   });
   const barData = [...monthsMap.entries()].map(([month, total]) => ({ month, total }));
 
