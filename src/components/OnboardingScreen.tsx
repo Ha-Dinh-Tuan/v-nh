@@ -64,7 +64,7 @@ export function OnboardingScreen() {
                   autoFocus
                   inputMode="numeric"
                   value={fmt(balance)}
-                  onChange={(e) => setBalance(e.target.value)}
+                  onChange={(e) => setBalance(clean(e.target.value))}
                   placeholder="0"
                   className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
                 />
@@ -92,7 +92,7 @@ export function OnboardingScreen() {
                   autoFocus
                   inputMode="numeric"
                   value={fmt(budget)}
-                  onChange={(e) => setBudget(e.target.value)}
+                  onChange={(e) => setBudget(clean(e.target.value))}
                   placeholder="0"
                   className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
                 />
