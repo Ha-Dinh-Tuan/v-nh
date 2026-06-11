@@ -108,7 +108,7 @@ function GoalsPage() {
                   size="sm"
                   variant="outline"
                   className="rounded-full h-7 text-xs"
-                  onClick={() => setDeposit({ id: g.id, amount: "" })}
+                  onClick={() => setDeposit({ id: g.id, amount: 0 })}
                 >
                   + Nạp tiền
                 </Button>
