@@ -4,6 +4,7 @@ import { VND } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MoneyInput } from "@/components/MoneyInput";
 import { Plus, Trash2, PiggyBank } from "lucide-react";
 import { toast } from "sonner";
 import { actions, useStore } from "@/lib/store";
@@ -18,27 +19,26 @@ function GoalsPage() {
   const goals = useStore((s) => s.goals);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [target, setTarget] = useState("");
+  const [target, setTarget] = useState(0);
   const [emoji, setEmoji] = useState("💖");
-  const [deposit, setDeposit] = useState<{ id: string; amount: string } | null>(null);
+  const [deposit, setDeposit] = useState<{ id: string; amount: number } | null>(null);
 
   const create = () => {
-    const t = Number(target.replace(/\D/g, ""));
-    if (!name.trim() || !t) {
+    if (!name.trim() || !target) {
       toast.error("Nhập tên và số tiền cần đạt nhé");
       return;
     }
-    actions.createGoal(name.trim(), t, emoji);
+    actions.createGoal(name.trim(), target, emoji);
     toast.success("Đã tạo mục tiêu " + emoji);
     setOpen(false);
     setName("");
-    setTarget("");
+    setTarget(0);
     setEmoji("💖");
   };
 
   const addSaving = () => {
     if (!deposit) return;
-    const v = Number(deposit.amount.replace(/\D/g, "")) || 0;
+    const v = deposit.amount;
     const g = goals.find((x) => x.id === deposit.id);
     if (!g || !v) return;
     actions.depositGoal(g.id, v);
@@ -119,7 +119,7 @@ function GoalsPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm">
+        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">Mục tiêu mới</DialogTitle>
           </DialogHeader>
@@ -130,19 +130,7 @@ function GoalsPage() {
               placeholder="Ví dụ: Laptop mới"
               className="rounded-2xl h-11 bg-muted border-0"
             />
-            <div className="rounded-2xl bg-primary-soft p-4 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Cần đạt</div>
-              <div className="flex items-baseline justify-center gap-1">
-                <Input
-                  inputMode="numeric"
-                  value={target ? Number(target.replace(/\D/g, "")).toLocaleString("vi-VN") : ""}
-                  onChange={(e) => setTarget(e.target.value.replace(/\D/g, ""))}
-                  placeholder="0"
-                  className="text-2xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-10 p-0 font-display"
-                />
-                <span className="font-bold text-primary">đ</span>
-              </div>
-            </div>
+            <MoneyInput value={target} onChange={setTarget} />
             <div className="flex gap-1.5 flex-wrap">
               {EMOJIS.map((e) => (
                 <button
@@ -167,30 +155,16 @@ function GoalsPage() {
       </Dialog>
 
       <Dialog open={!!deposit} onOpenChange={(v) => !v && setDeposit(null)}>
-        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm">
+        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">Nạp vào mục tiêu</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="rounded-2xl bg-primary-soft p-4 text-center">
-              <div className="flex items-baseline justify-center gap-1">
-                <Input
-                  autoFocus
-                  inputMode="numeric"
-                  value={
-                    deposit?.amount
-                      ? Number(deposit.amount.replace(/\D/g, "")).toLocaleString("vi-VN")
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setDeposit((d) => (d ? { ...d, amount: e.target.value.replace(/\D/g, "") } : d))
-                  }
-                  placeholder="0"
-                  className="text-2xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-10 p-0 font-display"
-                />
-                <span className="font-bold text-primary">đ</span>
-              </div>
-            </div>
+            <MoneyInput
+              value={deposit?.amount ?? 0}
+              onChange={(v) => setDeposit((d) => (d ? { ...d, amount: v } : d))}
+              autoFocus
+            />
             <Button
               onClick={addSaving}
               className="w-full h-11 rounded-2xl gradient-primary text-white font-semibold shadow-pink"

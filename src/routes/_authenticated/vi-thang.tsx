@@ -3,8 +3,8 @@ import { useState } from "react";
 import { VND, currentMonthKey } from "@/lib/format";
 import { CATEGORIES, findCategory } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MoneyInput } from "@/components/MoneyInput";
 import { toast } from "sonner";
 import { actions, useStore } from "@/lib/store";
 
@@ -20,9 +20,9 @@ function BudgetPage() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(0);
   const [totalOpen, setTotalOpen] = useState(false);
-  const [totalAmt, setTotalAmt] = useState("");
+  const [totalAmt, setTotalAmt] = useState(0);
 
   const allBudgets = useStore((s) => s.budgets);
   const allTx = useStore((s) => s.transactions);
@@ -40,21 +40,19 @@ function BudgetPage() {
   const openEdit = (cat: string) => {
     setEditing(cat);
     const cur = budgets.find((b) => b.category === cat);
-    setAmount(cur ? String(cur.amount) : "");
+    setAmount(cur ? cur.amount : 0);
     setOpen(true);
   };
 
   const save = () => {
     if (!editing) return;
-    const val = Number(amount.replace(/\D/g, "")) || 0;
-    actions.setBudget(editing, val, month);
+    actions.setBudget(editing, amount, month);
     toast.success("Đã cập nhật " + editing);
     setOpen(false);
   };
 
   const saveTotal = () => {
-    const val = Number(totalAmt.replace(/\D/g, "")) || 0;
-    actions.setBudget("__total__", val, month);
+    actions.setBudget("__total__", totalAmt, month);
     toast.success("Đã đặt ngân sách tháng");
     setTotalOpen(false);
   };
@@ -70,7 +68,7 @@ function BudgetPage() {
 
       <button
         onClick={() => {
-          setTotalAmt(totalBudget ? String(totalBudget) : "");
+          setTotalAmt(totalBudget);
           setTotalOpen(true);
         }}
         className="w-full text-left rounded-3xl gradient-primary p-5 text-white shadow-pink"
@@ -148,27 +146,14 @@ function BudgetPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm">
+        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">
               Ngân sách {editing} {editing ? findCategory(editing).emoji : ""}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="rounded-2xl bg-primary-soft p-5 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Số tiền / tháng</div>
-              <div className="flex items-baseline justify-center gap-1">
-                <Input
-                  autoFocus
-                  inputMode="numeric"
-                  value={amount ? Number(amount.replace(/\D/g, "")).toLocaleString("vi-VN") : ""}
-                  onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
-                  placeholder="0"
-                  className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
-                />
-                <span className="text-xl font-bold text-primary">đ</span>
-              </div>
-            </div>
+            <MoneyInput value={amount} onChange={setAmount} autoFocus />
             <Button
               onClick={save}
               className="w-full h-12 rounded-2xl gradient-primary text-white font-semibold shadow-pink"
@@ -180,24 +165,12 @@ function BudgetPage() {
       </Dialog>
 
       <Dialog open={totalOpen} onOpenChange={setTotalOpen}>
-        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm">
+        <DialogContent className="rounded-3xl border-0 shadow-pink max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">Ngân sách tháng này</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="rounded-2xl bg-primary-soft p-5 text-center">
-              <div className="flex items-baseline justify-center gap-1">
-                <Input
-                  autoFocus
-                  inputMode="numeric"
-                  value={totalAmt ? Number(totalAmt.replace(/\D/g, "")).toLocaleString("vi-VN") : ""}
-                  onChange={(e) => setTotalAmt(e.target.value.replace(/\D/g, ""))}
-                  placeholder="0"
-                  className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
-                />
-                <span className="text-xl font-bold text-primary">đ</span>
-              </div>
-            </div>
+            <MoneyInput value={totalAmt} onChange={setTotalAmt} autoFocus />
             <Button
               onClick={saveTotal}
               className="w-full h-12 rounded-2xl gradient-primary text-white font-semibold shadow-pink"

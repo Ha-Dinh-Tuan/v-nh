@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { VND } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/MoneyInput";
 import { toast } from "sonner";
 import { Wallet, Download, Upload, Trash2 } from "lucide-react";
 import { actions, useStore } from "@/lib/store";
@@ -13,18 +13,15 @@ export const Route = createFileRoute("/_authenticated/cai-dat")({
 
 function SettingsPage() {
   const initial_balance = useStore((s) => s.initial_balance);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setValue(initial_balance > 0 ? String(Math.round(initial_balance)) : "");
+    setValue(initial_balance);
   }, [initial_balance]);
 
-  const formatted = value ? Number(value).toLocaleString("vi-VN") : "";
-
   const save = () => {
-    const v = Number(value) || 0;
-    actions.setInitialBalance(v);
+    actions.setInitialBalance(value);
     toast.success("Đã cập nhật số dư ban đầu 🌸");
   };
 
@@ -75,19 +72,7 @@ function SettingsPage() {
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Wallet className="size-4 text-primary" /> Số dư ban đầu
         </div>
-        <div className="rounded-2xl bg-primary-soft p-5 text-center">
-          <div className="text-xs text-muted-foreground mb-1">Số tiền hiện có</div>
-          <div className="flex items-baseline justify-center gap-1">
-            <Input
-              inputMode="numeric"
-              value={formatted}
-              onChange={(e) => setValue(e.target.value.replace(/\D/g, ""))}
-              placeholder="0"
-              className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
-            />
-            <span className="text-xl font-bold text-primary">đ</span>
-          </div>
-        </div>
+        <MoneyInput value={value} onChange={setValue} />
         <p className="text-xs text-muted-foreground leading-relaxed">
           Số dư hiện tại = Số dư ban đầu + Tổng thu - Tổng chi. Đang lưu:{" "}
           <span className="font-semibold text-foreground">{VND(initial_balance)}</span>.
