@@ -17,15 +17,13 @@ function SettingsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setValue(String(Math.round(initial_balance)));
+    setValue(initial_balance > 0 ? String(Math.round(initial_balance)) : "");
   }, [initial_balance]);
 
-  const formatted = value
-    ? Number(value.replace(/\D/g, "")).toLocaleString("vi-VN")
-    : "";
+  const formatted = value ? Number(value).toLocaleString("vi-VN") : "";
 
   const save = () => {
-    const v = Number(value.replace(/\D/g, "")) || 0;
+    const v = Number(value) || 0;
     actions.setInitialBalance(v);
     toast.success("Đã cập nhật số dư ban đầu 🌸");
   };
@@ -83,7 +81,7 @@ function SettingsPage() {
             <Input
               inputMode="numeric"
               value={formatted}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => setValue(e.target.value.replace(/\D/g, ""))}
               placeholder="0"
               className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
             />
