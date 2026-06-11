@@ -33,7 +33,7 @@ export function QuickAddDialog({
   const cat = CATEGORIES.find((c) => c.name === category)!;
 
   const submit = () => {
-    const value = Number(amount.replace(/\D/g, ""));
+    const value = Number(amount);
     if (!value || value <= 0) {
       toast.error("Nhập số tiền nhé 💸");
       return;
@@ -53,9 +53,7 @@ export function QuickAddDialog({
     onOpenChange(false);
   };
 
-  const formatted = amount
-    ? Number(amount.replace(/\D/g, "")).toLocaleString("vi-VN")
-    : "";
+  const formatted = amount ? Number(amount).toLocaleString("vi-VN") : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,7 +93,7 @@ export function QuickAddDialog({
                 autoFocus
                 inputMode="numeric"
                 value={formatted}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
                 placeholder="0"
                 className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
               />

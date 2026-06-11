@@ -9,11 +9,11 @@ export function OnboardingScreen() {
   const [balance, setBalance] = useState("");
   const [budget, setBudget] = useState("");
 
-  const fmt = (v: string) =>
-    v ? Number(v.replace(/\D/g, "")).toLocaleString("vi-VN") : "";
+  const fmt = (v: string) => (v ? Number(v).toLocaleString("vi-VN") : "");
+  const clean = (v: string) => v.replace(/\D/g, "");
 
   const next = () => {
-    if (!Number(balance.replace(/\D/g, ""))) {
+    if (!Number(balance)) {
       toast.error("Nhập số tiền hiện có nhé 💖");
       return;
     }
@@ -21,8 +21,8 @@ export function OnboardingScreen() {
   };
 
   const finish = () => {
-    const b = Number(balance.replace(/\D/g, "")) || 0;
-    const bu = Number(budget.replace(/\D/g, "")) || 0;
+    const b = Number(balance) || 0;
+    const bu = Number(budget) || 0;
     actions.initialize(b, bu);
     toast.success("Xong rồi! Chào mừng đến Ví Hồng 🌷");
   };
