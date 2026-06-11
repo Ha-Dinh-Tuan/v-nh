@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/MoneyInput";
 import { CATEGORIES } from "@/lib/categories";
 import { actions } from "@/lib/store";
 import { toast } from "sonner";
@@ -15,14 +16,14 @@ export function QuickAddDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const [kind, setKind] = useState<"expense" | "income">("expense");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(0);
   const [category, setCategory] = useState(CATEGORIES[0].name);
   const [sub, setSub] = useState<string | null>(null);
   const [note, setNote] = useState("");
 
   useEffect(() => {
     if (open) {
-      setAmount("");
+      setAmount(0);
       setSub(null);
       setNote("");
       setKind("expense");
@@ -33,13 +34,12 @@ export function QuickAddDialog({
   const cat = CATEGORIES.find((c) => c.name === category)!;
 
   const submit = () => {
-    const value = Number(amount);
-    if (!value || value <= 0) {
+    if (!amount || amount <= 0) {
       toast.error("Nhập số tiền nhé 💸");
       return;
     }
     actions.addTransaction({
-      amount: value,
+      amount,
       kind,
       category: kind === "income" ? "Thu nhập" : category,
       subcategory: kind === "income" ? null : sub,
@@ -47,17 +47,15 @@ export function QuickAddDialog({
     });
     toast.success(
       kind === "income"
-        ? `+${value.toLocaleString("vi-VN")}đ thu nhập 💖`
-        : `Đã ghi ${value.toLocaleString("vi-VN")}đ ${cat.emoji}`,
+        ? `+${amount.toLocaleString("vi-VN")}đ thu nhập 💖`
+        : `Đã ghi ${amount.toLocaleString("vi-VN")}đ ${cat.emoji}`,
     );
     onOpenChange(false);
   };
 
-  const formatted = amount ? Number(amount).toLocaleString("vi-VN") : "";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-3xl border-0 shadow-pink">
+      <DialogContent className="sm:max-w-md rounded-3xl border-0 shadow-pink max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">Ghi nhanh</DialogTitle>
         </DialogHeader>
@@ -86,20 +84,7 @@ export function QuickAddDialog({
             </button>
           </div>
 
-          <div className="rounded-2xl bg-primary-soft p-5 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Số tiền</div>
-            <div className="flex items-baseline justify-center gap-1">
-              <Input
-                autoFocus
-                inputMode="numeric"
-                value={formatted}
-                onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
-                placeholder="0"
-                className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
-              />
-              <span className="text-xl font-bold text-primary">đ</span>
-            </div>
-          </div>
+          <MoneyInput value={amount} onChange={setAmount} autoFocus />
 
           {kind === "expense" && (
             <>

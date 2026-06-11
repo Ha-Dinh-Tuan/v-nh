@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/MoneyInput";
 import { actions } from "@/lib/store";
 import { toast } from "sonner";
 
 export function OnboardingScreen() {
   const [step, setStep] = useState<1 | 2>(1);
-  const [balance, setBalance] = useState("");
-  const [budget, setBudget] = useState("");
-
-  const fmt = (v: string) => (v ? Number(v).toLocaleString("vi-VN") : "");
-  const clean = (v: string) => v.replace(/\D/g, "");
+  const [balance, setBalance] = useState(0);
+  const [budget, setBudget] = useState(0);
 
   const next = () => {
-    if (!Number(balance)) {
+    if (!balance) {
       toast.error("Nhập số tiền hiện có nhé 💖");
       return;
     }
@@ -21,14 +18,12 @@ export function OnboardingScreen() {
   };
 
   const finish = () => {
-    const b = Number(balance) || 0;
-    const bu = Number(budget) || 0;
-    actions.initialize(b, bu);
+    actions.initialize(balance, budget);
     toast.success("Xong rồi! Chào mừng đến Ví Hồng 🌷");
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 mx-auto max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-8 mx-auto max-w-md">
       <div className="w-full rounded-3xl gradient-primary p-6 text-white shadow-pink mb-5 text-center">
         <div className="text-4xl mb-2">🌸</div>
         <h1 className="font-display text-2xl font-bold">Chào bạn!</h1>
@@ -58,19 +53,7 @@ export function OnboardingScreen() {
                 Là tổng số tiền hiện có trong ví, tài khoản, ví điện tử...
               </p>
             </div>
-            <div className="rounded-2xl bg-primary-soft p-5 text-center">
-              <div className="flex items-baseline justify-center gap-1">
-                <Input
-                  autoFocus
-                  inputMode="numeric"
-                  value={fmt(balance)}
-                  onChange={(e) => setBalance(clean(e.target.value))}
-                  placeholder="0"
-                  className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
-                />
-                <span className="text-xl font-bold text-primary">đ</span>
-              </div>
-            </div>
+            <MoneyInput value={balance} onChange={setBalance} autoFocus />
             <Button
               onClick={next}
               className="w-full h-12 rounded-2xl gradient-primary text-white font-semibold shadow-pink"
@@ -86,19 +69,7 @@ export function OnboardingScreen() {
                 Số tiền bạn cho phép mình chi trong tháng. Bỏ trống nếu chưa biết.
               </p>
             </div>
-            <div className="rounded-2xl bg-accent/50 p-5 text-center">
-              <div className="flex items-baseline justify-center gap-1">
-                <Input
-                  autoFocus
-                  inputMode="numeric"
-                  value={fmt(budget)}
-                  onChange={(e) => setBudget(clean(e.target.value))}
-                  placeholder="0"
-                  className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
-                />
-                <span className="text-xl font-bold text-primary">đ</span>
-              </div>
-            </div>
+            <MoneyInput value={budget} onChange={setBudget} autoFocus />
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
