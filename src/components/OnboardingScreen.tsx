@@ -9,11 +9,11 @@ export function OnboardingScreen() {
   const [balance, setBalance] = useState("");
   const [budget, setBudget] = useState("");
 
-  const fmt = (v: string) =>
-    v ? Number(v.replace(/\D/g, "")).toLocaleString("vi-VN") : "";
+  const fmt = (v: string) => (v ? Number(v).toLocaleString("vi-VN") : "");
+  const clean = (v: string) => v.replace(/\D/g, "");
 
   const next = () => {
-    if (!Number(balance.replace(/\D/g, ""))) {
+    if (!Number(balance)) {
       toast.error("Nhập số tiền hiện có nhé 💖");
       return;
     }
@@ -21,8 +21,8 @@ export function OnboardingScreen() {
   };
 
   const finish = () => {
-    const b = Number(balance.replace(/\D/g, "")) || 0;
-    const bu = Number(budget.replace(/\D/g, "")) || 0;
+    const b = Number(balance) || 0;
+    const bu = Number(budget) || 0;
     actions.initialize(b, bu);
     toast.success("Xong rồi! Chào mừng đến Ví Hồng 🌷");
   };
@@ -64,7 +64,7 @@ export function OnboardingScreen() {
                   autoFocus
                   inputMode="numeric"
                   value={fmt(balance)}
-                  onChange={(e) => setBalance(e.target.value)}
+                  onChange={(e) => setBalance(clean(e.target.value))}
                   placeholder="0"
                   className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
                 />
@@ -92,7 +92,7 @@ export function OnboardingScreen() {
                   autoFocus
                   inputMode="numeric"
                   value={fmt(budget)}
-                  onChange={(e) => setBudget(e.target.value)}
+                  onChange={(e) => setBudget(clean(e.target.value))}
                   placeholder="0"
                   className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
                 />

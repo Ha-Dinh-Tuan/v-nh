@@ -24,11 +24,11 @@ function BudgetPage() {
   const [totalOpen, setTotalOpen] = useState(false);
   const [totalAmt, setTotalAmt] = useState("");
 
-  const budgets = useStore((s) => s.budgets.filter((b) => b.month === month));
-  const tx = useStore((s) =>
-    s.transactions.filter(
-      (t) => t.kind === "expense" && new Date(t.occurred_at) >= monthStart,
-    ),
+  const allBudgets = useStore((s) => s.budgets);
+  const allTx = useStore((s) => s.transactions);
+  const budgets = allBudgets.filter((b) => b.month === month);
+  const tx = allTx.filter(
+    (t) => t.kind === "expense" && new Date(t.occurred_at) >= monthStart,
   );
 
   const spentBy = new Map<string, number>();
@@ -162,7 +162,7 @@ function BudgetPage() {
                   autoFocus
                   inputMode="numeric"
                   value={amount ? Number(amount.replace(/\D/g, "")).toLocaleString("vi-VN") : ""}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
                   placeholder="0"
                   className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
                 />
@@ -191,7 +191,7 @@ function BudgetPage() {
                   autoFocus
                   inputMode="numeric"
                   value={totalAmt ? Number(totalAmt.replace(/\D/g, "")).toLocaleString("vi-VN") : ""}
-                  onChange={(e) => setTotalAmt(e.target.value)}
+                  onChange={(e) => setTotalAmt(e.target.value.replace(/\D/g, ""))}
                   placeholder="0"
                   className="text-3xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-12 p-0 font-display"
                 />
