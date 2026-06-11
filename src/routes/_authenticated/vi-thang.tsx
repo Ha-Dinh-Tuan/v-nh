@@ -24,11 +24,11 @@ function BudgetPage() {
   const [totalOpen, setTotalOpen] = useState(false);
   const [totalAmt, setTotalAmt] = useState("");
 
-  const budgets = useStore((s) => s.budgets.filter((b) => b.month === month));
-  const tx = useStore((s) =>
-    s.transactions.filter(
-      (t) => t.kind === "expense" && new Date(t.occurred_at) >= monthStart,
-    ),
+  const allBudgets = useStore((s) => s.budgets);
+  const allTx = useStore((s) => s.transactions);
+  const budgets = allBudgets.filter((b) => b.month === month);
+  const tx = allTx.filter(
+    (t) => t.kind === "expense" && new Date(t.occurred_at) >= monthStart,
   );
 
   const spentBy = new Map<string, number>();

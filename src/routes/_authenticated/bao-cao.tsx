@@ -17,9 +17,8 @@ function ReportPage() {
   sixMonthAgo.setDate(1);
   sixMonthAgo.setHours(0, 0, 0, 0);
 
-  const tx = useStore((s) =>
-    s.transactions.filter((t) => new Date(t.occurred_at) >= sixMonthAgo),
-  );
+  const allTx = useStore((s) => s.transactions);
+  const tx = allTx.filter((t) => new Date(t.occurred_at) >= sixMonthAgo);
 
   const monthTx = tx.filter(
     (t) => new Date(t.occurred_at) >= start && t.kind === "expense",
