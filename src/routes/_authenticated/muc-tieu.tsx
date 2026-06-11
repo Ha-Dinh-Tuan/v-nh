@@ -136,7 +136,7 @@ function GoalsPage() {
                 <Input
                   inputMode="numeric"
                   value={target ? Number(target.replace(/\D/g, "")).toLocaleString("vi-VN") : ""}
-                  onChange={(e) => setTarget(e.target.value)}
+                  onChange={(e) => setTarget(e.target.value.replace(/\D/g, ""))}
                   placeholder="0"
                   className="text-2xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-10 p-0 font-display"
                 />
@@ -183,7 +183,7 @@ function GoalsPage() {
                       : ""
                   }
                   onChange={(e) =>
-                    setDeposit((d) => (d ? { ...d, amount: e.target.value } : d))
+                    setDeposit((d) => (d ? { ...d, amount: e.target.value.replace(/\D/g, "") } : d))
                   }
                   placeholder="0"
                   className="text-2xl font-bold text-center bg-transparent border-0 shadow-none focus-visible:ring-0 h-10 p-0 font-display"
