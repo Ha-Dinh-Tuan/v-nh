@@ -11,6 +11,7 @@ export const CATEGORIES: Category[] = [
   { name: "Học tập", emoji: "📚", color: "#60A5FA", sub: ["Tài liệu", "Khóa học", "Đồ dùng học tập"] },
   { name: "Giải trí", emoji: "🎮", color: "#A78BFA", sub: ["Game", "Xem phim", "Đi chơi"] },
   { name: "Người yêu", emoji: "💖", color: "#EC4899", sub: ["Ăn uống", "Quà tặng", "Hẹn hò", "Du lịch"] },
+  { name: "Tiết kiệm", emoji: "🐷", color: "#34D399", sub: ["Mục tiêu"] },
   { name: "Khác", emoji: "✨", color: "#94A3B8", sub: [] },
 ];
 
