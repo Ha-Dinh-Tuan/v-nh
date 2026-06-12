@@ -26,7 +26,7 @@ export function OnboardingScreen() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-8 mx-auto max-w-md">
       <div className="w-full rounded-3xl gradient-primary p-6 text-white shadow-pink mb-5 text-center">
-        <div className="text-4xl mb-2">🌸</div>
+        <img src={logo.url} alt="Ví Hồng" className="w-20 h-20 mx-auto mb-2 drop-shadow-lg" />
         <h1 className="font-display text-2xl font-bold">Chào bạn!</h1>
         <p className="text-sm opacity-90 mt-1">
           Mình là Ví Hồng — đồng hành tiết kiệm cùng bạn 💖
