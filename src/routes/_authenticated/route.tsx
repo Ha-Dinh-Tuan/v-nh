@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
 import { Home, ListChecks, Target, PieChart, Settings as SettingsIcon, Wallet } from "lucide-react";
+import logo from "@/assets/vi-hong-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
