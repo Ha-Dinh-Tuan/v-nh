@@ -190,12 +190,27 @@ export const actions = {
   },
 
   depositGoal(id: string, amount: number) {
-    update((s) => ({
-      ...s,
-      goals: s.goals.map((g) =>
-        g.id === id ? { ...g, saved_amount: g.saved_amount + amount } : g,
-      ),
-    }));
+    update((s) => {
+      const goal = s.goals.find((g) => g.id === id);
+      return {
+        ...s,
+        goals: s.goals.map((g) =>
+          g.id === id ? { ...g, saved_amount: g.saved_amount + amount } : g,
+        ),
+        transactions: [
+          {
+            id: uid(),
+            occurred_at: new Date().toISOString(),
+            amount,
+            kind: "expense",
+            category: "Tiết kiệm",
+            subcategory: null,
+            note: goal ? `Nạp mục tiêu: ${goal.name}` : "Nạp mục tiêu",
+          },
+          ...s.transactions,
+        ],
+      };
+    });
   },
 
   deleteGoal(id: string) {
