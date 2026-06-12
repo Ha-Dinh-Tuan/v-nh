@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MoneyInput } from "@/components/MoneyInput";
 import { actions } from "@/lib/store";
 import { toast } from "sonner";
+import logo from "@/assets/vi-hong-logo.png.asset.json";
 
 export function OnboardingScreen() {
   const [step, setStep] = useState<1 | 2>(1);
