@@ -12,7 +12,7 @@ function AppLayout() {
     <div className="min-h-screen flex flex-col mx-auto max-w-md w-full pb-24 relative">
       <header className="flex items-center justify-between px-5 pt-6 pb-3">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl">🌸</span>
+          <img src={logo.url} alt="Ví Hồng" className="w-8 h-8 rounded-lg" />
           <span className="font-display font-bold text-lg tracking-tight">Ví Hồng</span>
         </Link>
       </header>
